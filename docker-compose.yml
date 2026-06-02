@@ -1,0 +1,42 @@
+services:
+  todo-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: todo-app
+    restart: unless-stopped
+    ports:
+      - "8080"
+    networks:
+      - todo-net
+    environment:
+      DATABASE_URL: mysql://todouser:TodoPass123@todo-db:3306/tododb
+      RUST_LOG: info
+    depends_on:
+      todo-db:
+        condition: service_healthy
+
+  todo-db:
+    image: mariadb:11
+    container_name: todo-db
+    restart: unless-stopped
+    networks:
+      - todo-net
+    environment:
+      MYSQL_ROOT_PASSWORD: RootPass123
+      MYSQL_DATABASE: tododb
+      MYSQL_USER: todouser
+      MYSQL_PASSWORD: TodoPass123
+    volumes:
+      - mariadb_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mariadb-admin", "ping", "-h", "localhost", "-u", "todouser", "-pTodoPass123"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  todo-net:
+
+volumes:
+  mariadb_data:
