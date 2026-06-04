@@ -178,12 +178,17 @@ async fn main() -> std::io::Result<()> {
         .expect("Failed to connect to MariaDB");
 
     // Create table
+    sqlx::query("DROP TABLE IF EXISTS todos")
+        .execute(&pool)
+        .await
+        .expect("Failed to drop old todos table");
+
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS todos (
             id INT AUTO_INCREMENT PRIMARY KEY,
             title VARCHAR(255) NOT NULL,
             completed BOOLEAN NOT NULL DEFAULT FALSE,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )",
     )
     .execute(&pool)
